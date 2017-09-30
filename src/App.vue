@@ -26,13 +26,14 @@ export default {
 html,
 body {
   height: 100%;
-  font-family: "Source Sans Pro", sans-serif;
+  font-family: 'Dosis', sans-serif;
+  color: #16222a;
 }
 
 body {
   display: flex;
   justify-content: center;
-  overflow: hidden;  
+  overflow: hidden;
 }
 
 div {
@@ -47,10 +48,13 @@ nav {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 100%);
   align-content: center;
   justify-content: center;
+  color: #fff;
+  font-size: 2rem;
   ul {
     list-style: none;
     li {
       img {
+        vertical-align: bottom;
         height: 36px;
       }
     }

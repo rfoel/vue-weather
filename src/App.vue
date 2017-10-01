@@ -49,13 +49,13 @@ nav {
   align-content: center;
   justify-content: center;
   color: #fff;
-  font-size: 2rem;
+  font-size: 1.5rem;
   ul {
     list-style: none;
     li {
       img {
         vertical-align: bottom;
-        height: 36px;
+        height: 30px;
       }
     }
   }

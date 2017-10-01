@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="night">
+  <div id="app" :class="day ? 'day' : 'night'">
     <div class="orbit">
       <div class="sun"></div>
       <div class="moon"></div>
@@ -7,21 +7,41 @@
     <main>
       <a class="search"></a>
       <div class="box">
-        <h1>{{weather.name}}</h1>
-        <h1 v-if="weather.main">{{weather.main.temp | temperature}}</h1>
-        <h2 v-if="weather.main">Min: {{weather.main.temp_min | temperature}} Max: {{weather.main.temp_max | temperature}}</h2>
+        <div class="row">
+          <div class="clock">
+            <svg id="clock" width="100%" height="100%" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="80" stroke-width="12px" fill="#fff" stroke="#16222a" />
+              <g stroke-linejoin="round" stroke-linecap="round" stroke="#16222a">
+                <line y2="30" transform="rotate(0 100 100)" x2="100" y1="100" x1="100" stroke-width="2px" />
+                <line y2="40" transform="rotate(0 100 100)" x2="100" y1="100" x1="100" stroke-width="4px" />
+                <line y2="55" transform="rotate(80 100 100)" x2="100" y1="100" x1="100" stroke-width="3px" />
+              </g>
+            </svg>
+          </div>
+          <span class="time"> {{datetime | date}}</span>
+        </div>
+        <div class="row">
+          <h1>{{weather.name}}</h1>
+        </div>
+        <div class="row">
+          <h1 v-if="weather.main">{{weather.main.temp | temperature}}</h1>
+        </div>
+        <div class="row">
+          <h2 v-if="weather.main">Min: {{weather.main.temp_min | temperature}} Max: {{weather.main.temp_max | temperature}}</h2>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script>
-
 export default {
   name: "weather",
   data() {
     return {
-      weather: {}
+      weather: {},
+      datetime: new Date(),
+      day: true
     }
   },
   mounted() {
@@ -29,7 +49,6 @@ export default {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log(position)
           this.getWeather(position)
           this.startClock()
         }, (error) => {
@@ -43,44 +62,39 @@ export default {
       let lat = position.coords.latitude
       let lon = position.coords.longitude
       this.$http.get(`http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=a793d7777a5d7cf566cbd52f98c985c9&units=metric`).then(response => {
-        console.log(response.body)
         this.weather = response.body
       }, error => {
         console.log(error)
       })
     },
     startClock() {
-      let hands = []
-      hands.push(document.querySelector("#secondhand > *"))
-      hands.push(document.querySelector("#minutehand > *"))
-      hands.push(document.querySelector("#hourhand > *"))
+      const hands = document.querySelectorAll("#clock line")
+      setInterval(() => this.updateClock(hands), 1000)
+    },
+    updateClock(hands) {
+      const cx = 100
+      const cy = 100
 
-      console.log(hands)
+      this.datetime = new Date()
+      let hoursAngle = 360 * this.datetime.getHours() / 12 + this.datetime.getMinutes() / 2
+      let minutesAngle = 360 * this.datetime.getMinutes() / 60
+      let secondsAngle = 360 * this.datetime.getSeconds() / 60
+      hands[0].setAttribute("transform", `rotate(${[secondsAngle, cx, cy].join(" ")})`)
+      hands[1].setAttribute("transform", `rotate(${[minutesAngle, cx, cy].join(" ")})`)
+      hands[2].setAttribute("transform", `rotate(${[hoursAngle, cx, cy].join(" ")})`)
 
-      let cx = 100
-      let cy = 100
-
-      function shifter(val) {
-        return [val, cx, cy].join(" ")
-      }
-
-      let date = new Date()
-      let hoursAngle = 360 * date.getHours() / 12 + date.getMinutes() / 2
-      let minuteAngle = 360 * date.getMinutes() / 60
-      let secAngle = 360 * date.getSeconds() / 60
-
-      hands[0].setAttribute("from", shifter(secAngle))
-      hands[0].setAttribute("to", shifter(secAngle + 360))
-      hands[1].setAttribute("from", shifter(minuteAngle))
-      hands[1].setAttribute("to", shifter(minuteAngle + 360))
-      hands[2].setAttribute("from", shifter(hoursAngle))
-      hands[2].setAttribute("to", shifter(hoursAngle + 360))
+      this.dayOrNight = this.datetime.getHours() > 6 && this.datetime.getHours() < 18 ? "day" : "night"
     }
   },
   filters: {
     temperature: (value) => {
-      console.log(value)
       return `${value.toFixed(0)}°`
+    },
+    date: (value) => {
+      return (`0${value.getHours()}`).slice(-2) + ":" + (`0${value.getMinutes()}`).slice(-2)
+    },
+    time: (value) => {
+
     }
   }
 }
@@ -94,11 +108,6 @@ export default {
   align-content: center;
   justify-content: center;
   overflow: hidden;
-}
-
-h1,
-h2 {
-  text-align: center;
 }
 
 .night {
@@ -136,7 +145,8 @@ h2 {
   height: 60vh;
   width: 60vh;
   align-self: center;
-  animation: spin-right 10s linear infinite;
+  transform: rotate(0deg);
+   // animation: spin-right 10s linear infinite;
 }
 
 .sun {
@@ -179,10 +189,27 @@ main {
   justify-content: center;
 
   .box {
+    width: 60vh;
     margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    .row {
+      flex: 1;
+    }
+
     .clock {
-      width: 100px;
-      height: 100px;
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+    }
+    .time {
+      display: inline-block;
+      height: 50px;
+      line-height: 50px;
+      font-size: 1.5rem;
+      vertical-align: top;
+      padding: 0 10px;
     }
   }
 

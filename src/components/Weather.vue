@@ -18,7 +18,9 @@
               </g>
             </svg>
           </div>
-          <span class="time"> {{datetime | date}}</span>
+          <span class="time"> {{datetime | time}}</span>
+          <br>
+          <input type="range" min="0" max="1440" v-model="minuteOfDay" @input="updateClock()">
         </div>
         <div class="row">
           <h1>{{weather.name}}</h1>
@@ -40,8 +42,9 @@ export default {
   data() {
     return {
       weather: {},
-      datetime: new Date(),
-      day: true
+      datetime: new Date(new Date().setHours(0, 0, 0, 0)),
+      day: true,
+      minuteOfDay: 0
     }
   },
   mounted() {
@@ -68,14 +71,17 @@ export default {
       })
     },
     startClock() {
-      const hands = document.querySelectorAll("#clock line")
-      setInterval(() => this.updateClock(hands), 1000)
+      // setInterval(() => this.updateClock(datetime, hands), 1000)
+      this.updateClock()
     },
-    updateClock(hands) {
+    updateClock() {
+      const hands = document.querySelectorAll("#clock line")
+
       const cx = 100
       const cy = 100
+      this.datetime = new Date(new Date().setHours(0, 0, 0, 0))
+      this.datetime = new Date(this.datetime.getTime() + this.minuteOfDay * 60000)
 
-      this.datetime = new Date()
       let hoursAngle = 360 * this.datetime.getHours() / 12 + this.datetime.getMinutes() / 2
       let minutesAngle = 360 * this.datetime.getMinutes() / 60
       let secondsAngle = 360 * this.datetime.getSeconds() / 60
@@ -83,7 +89,14 @@ export default {
       hands[1].setAttribute("transform", `rotate(${[minutesAngle, cx, cy].join(" ")})`)
       hands[2].setAttribute("transform", `rotate(${[hoursAngle, cx, cy].join(" ")})`)
 
-      this.dayOrNight = this.datetime.getHours() > 6 && this.datetime.getHours() < 18 ? "day" : "night"
+      this.day = this.datetime.getHours() >= 6 && this.datetime.getHours() < 18
+      this.orbit()
+    },
+    orbit() {
+      const orbit = document.querySelector(".orbit")
+      let orbitAngle = ((this.datetime.getMinutes()) + (60 * this.datetime.getHours())) / 4
+      console.log(orbitAngle)
+      orbit.style.transform = `rotate(${orbitAngle}deg)`
     }
   },
   filters: {
@@ -94,7 +107,7 @@ export default {
       return (`0${value.getHours()}`).slice(-2) + ":" + (`0${value.getMinutes()}`).slice(-2)
     },
     time: (value) => {
-
+      return (`0${value.getHours()}`).slice(-2) + ":" + (`0${value.getMinutes()}`).slice(-2)
     }
   }
 }
@@ -145,19 +158,18 @@ export default {
   height: 60vh;
   width: 60vh;
   align-self: center;
-  transform: rotate(0deg);
-   // animation: spin-right 10s linear infinite;
+  transform: rotate(0deg); // animation: spin-right 10s linear infinite;
 }
 
 .sun {
   background-color: #ffc107;
   border-radius: 50px;
-  margin-left: -40px;
-  margin-top: -40px;
+  margin-right: -40px;
+  margin-bottom: -40px;
   height: 80px;
-  left: 50%;
   position: absolute;
-  top: 0;
+  right: 50%;
+  bottom: 0;
   width: 80px;
 }
 
@@ -165,11 +177,11 @@ export default {
   background: url("./../assets/images/moon.svg") no-repeat;
   background-size: 60px;
   margin-left: -40px;
-  margin-bottom: 40px;
+  margin-top: 40px;
   height: 60px;
-  left: 50%;
   position: absolute;
-  bottom: 0;
+  top: 0;
+  left: 50%;
   width: 60px;
 }
 

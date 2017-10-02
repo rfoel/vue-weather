@@ -5,7 +5,11 @@
       <div class="moon"></div>
     </div>
     <main>
-      <a class="search"></a>
+      <a class="search" @click="toggleSearch()"></a>
+      <div class="search-box" v-if="isSearching" v-on-clickaway="toggleSearch">
+        <label for="">Find a place!</label>
+        <input type="text" @input="searchPlace()" v-model="place">
+      </div>
       <div class="box">
         <div class="row">
           <div class="clock">
@@ -35,18 +39,24 @@
 </template>
 
 <script>
+import { mixin as clickaway } from "vue-clickaway"
+
+let google
+
 export default {
   name: "weather",
+  mixins: [clickaway],
   data() {
     return {
       weather: {},
       datetime: new Date(),
       day: true,
-      minuteOfDay: 0
+      minuteOfDay: 0,
+      isSearching: false,
+      place: ""
     }
   },
   mounted() {
-    // AIzaSyAjmF9FpnCQ_-sA2ALIeIlCBj_4ljJzQW0 maps api
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -57,6 +67,9 @@ export default {
         }
       )
     } else console.log("Your browser does not support me.")
+
+    const autocomplete = new google.maps.places.Autocomplete(this.place)
+    console.log(autocomplete)
   },
   methods: {
     getWeather(position) {
@@ -79,7 +92,7 @@ export default {
       const cx = 100
       const cy = 100
       this.datetime = new Date()
-      this.datetime = new Date(this.datetime.getTime() + this.minuteOfDay * 60000)
+      // this.datetime = new Date(this.datetime.getTime() + this.minuteOfDay * 60000)
 
       let hoursAngle = 360 * this.datetime.getHours() / 12 + this.datetime.getMinutes() / 2
       let minutesAngle = 360 * this.datetime.getMinutes() / 60
@@ -95,6 +108,12 @@ export default {
       const orbit = document.querySelector(".orbit")
       let orbitAngle = ((this.datetime.getMinutes()) + (60 * this.datetime.getHours())) / 4
       orbit.style.transform = `rotate(${orbitAngle}deg)`
+    },
+    toggleSearch() {
+      this.isSearching = !this.isSearching
+    },
+    searchPlace() {
+      if (this.place.length < 3) return
     }
   },
   filters: {
@@ -231,7 +250,7 @@ main {
     height: 50px;
     border-radius: 50%;
     padding: 10px;
-    box-shadow: 0px 5px 20px 0px rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 2px 3.5px 0 rgba(0, 0, 0, .3);
     position: absolute;
     top: 0;
     left: 50%;
@@ -240,6 +259,52 @@ main {
 
     &:hover {
       top: -1%;
+    }
+  }
+
+  .search-box {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    width: 300px;
+    height: 100px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 2px 2px 3.5px 0 rgba(0, 0, 0, .3);
+
+    &:after {
+      content: ' ';
+      display: block;
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      bottom: -10px;
+      left: 47%;
+      background: #fff;
+      transform: translate(-50%, -50%);
+      transform: rotate(45deg);
+      box-shadow: 2px 2px 3.5px 0 rgba(0, 0, 0, .3);
+    }
+
+    input {
+      font-family: 'Dosis', sans-serif;
+      font-size: 26px;
+      height: 36px;
+      padding: 0 10px; // flex: 1;
+      &:focus,
+      &:active {
+        outline: none;
+      }
+    }
+
+    label {
+      font-size: 26px;
+      margin-bottom: 10px;
     }
   }
 }

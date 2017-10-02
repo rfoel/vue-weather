@@ -19,8 +19,6 @@
             </svg>
           </div>
           <span class="time"> {{datetime | time}}</span>
-          <br>
-          <input type="range" min="0" max="1440" v-model="minuteOfDay" @input="updateClock()">
         </div>
         <div class="row">
           <h1>{{weather.name}}</h1>
@@ -42,7 +40,7 @@ export default {
   data() {
     return {
       weather: {},
-      datetime: new Date(new Date().setHours(0, 0, 0, 0)),
+      datetime: new Date(),
       day: true,
       minuteOfDay: 0
     }
@@ -66,20 +64,21 @@ export default {
       let lon = position.coords.longitude
       this.$http.get(`http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=a793d7777a5d7cf566cbd52f98c985c9&units=metric`).then(response => {
         this.weather = response.body
+        console.log(response.body)
       }, error => {
         console.log(error)
       })
     },
     startClock() {
-      // setInterval(() => this.updateClock(datetime, hands), 1000)
-      this.updateClock()
+      setInterval(() => this.updateClock(), 1000)
+      // this.updateClock()
     },
     updateClock() {
       const hands = document.querySelectorAll("#clock line")
 
       const cx = 100
       const cy = 100
-      this.datetime = new Date(new Date().setHours(0, 0, 0, 0))
+      this.datetime = new Date()
       this.datetime = new Date(this.datetime.getTime() + this.minuteOfDay * 60000)
 
       let hoursAngle = 360 * this.datetime.getHours() / 12 + this.datetime.getMinutes() / 2
@@ -95,7 +94,6 @@ export default {
     orbit() {
       const orbit = document.querySelector(".orbit")
       let orbitAngle = ((this.datetime.getMinutes()) + (60 * this.datetime.getHours())) / 4
-      console.log(orbitAngle)
       orbit.style.transform = `rotate(${orbitAngle}deg)`
     }
   },
